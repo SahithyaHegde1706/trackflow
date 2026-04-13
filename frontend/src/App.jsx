@@ -13,6 +13,8 @@ import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import CreateProject from './pages/CreateProject';
 import ProjectDetails from './pages/ProjectDetails';
+import EditProject from './pages/EditProject';
+import CreateTicket from './pages/CreateTicket';
 import AdminPanel from './pages/AdminPanel';
 import TicketDetails from './pages/TicketDetails';
 import Settings from './pages/Settings';
@@ -36,6 +38,8 @@ function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/project/:id" element={<ProjectDetails />} />
+        <Route path="/projects/edit/:projectId" element={<EditProject />} />
+        <Route path="/projects/:projectId/new-ticket" element={<CreateTicket />} />
         <Route path="/ticket/:ticketId" element={<TicketDetails />} />
         <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
         <Route path="/settings" element={<Settings />} />

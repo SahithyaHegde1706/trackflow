@@ -34,21 +34,8 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [editTicketId, setEditTicketId] = useState(null);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
-  
-  const [newTicket, setNewTicket] = useState({
-    title: '',
-    description: '',
-    priority: 'Medium',
-    status: 'To Do'
-  });
-
   const [activeView, setActiveView] = useState('board'); // board or activity
   const [selectedTickets, setSelectedTickets] = useState([]);
 
@@ -114,36 +101,6 @@ const ProjectDetails = () => {
       console.error("Failed to update ticket status", error);
       fetchData();
     }
-  };
-
-  const handleSubmitTicket = async (e) => {
-    e.preventDefault();
-    try {
-      if (editMode) {
-        await API.put(`/api/tickets/${editTicketId}`, newTicket);
-        setTickets(prev => prev.map(t => t._id === editTicketId ? { ...t, ...newTicket } : t));
-      } else {
-        await API.post(`/api/projects/${id}/tickets`, newTicket);
-      }
-      setShowModal(false);
-      setNewTicket({ title: '', description: '', priority: 'Medium', status: 'To Do' });
-      setEditMode(false);
-      setEditTicketId(null);
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error saving ticket');
-    }
-  };
-
-  const handleEditTicket = (ticket) => {
-    setEditMode(true);
-    setEditTicketId(ticket._id);
-    setNewTicket({
-      title: ticket.title,
-      description: ticket.description,
-      priority: ticket.priority,
-      status: ticket.status
-    });
-    setShowModal(true);
   };
 
   const handleDeleteTicket = async (ticketId) => {
@@ -290,12 +247,7 @@ const ProjectDetails = () => {
         <div className="hidden md:block h-8 w-px bg-slate-700/50 mx-2" />
 
         <button 
-          onClick={() => {
-            setEditMode(false);
-            setEditTicketId(null);
-            setNewTicket({ title: '', description: '', priority: 'Medium', status: 'To Do' });
-            setShowModal(true);
-          }}
+          onClick={() => navigate(`/projects/${id}/new-ticket`)}
           className="w-full md:w-auto bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus size={16} />
@@ -310,15 +262,9 @@ const ProjectDetails = () => {
             tickets={filteredTickets} 
             onDragEnd={handleDragEnd} 
             onOpenTicket={(ticket) => navigate(`/ticket/${ticket._id}`)}
-            onAddTicket={(status) => {
-              setEditMode(false);
-              setEditTicketId(null);
-              setNewTicket({ title: '', description: '', priority: 'Medium', status });
-              setShowModal(true);
-            }}
+            onAddTicket={() => navigate(`/projects/${id}/new-ticket`)}
             selectedTickets={selectedTickets}
             onToggleSelect={handleTicketSelect}
-            onEditTicket={handleEditTicket}
             onDeleteTicket={handleDeleteTicket}
           />
         ) : (
@@ -372,80 +318,6 @@ const ProjectDetails = () => {
            >
               Cancel
            </button>
-        </div>
-      )}
-
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowModal(false)} />
-          <div className="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl animate-in">
-            <button 
-              onClick={() => setShowModal(false)}
-              className="absolute top-8 right-8 text-slate-500 hover:text-white p-2"
-            >
-              <X size={20} />
-            </button>
-            <div className="mb-8">
-               <h2 className="text-2xl font-black text-white tracking-tight">{editMode ? 'Modify Ticket' : 'Issue Manifest'}</h2>
-               <p className="text-slate-500 text-sm mt-1 font-medium italic">{editMode ? 'Update existing ticket specifics' : 'Describe the technical obstacle'}</p>
-            </div>
-            <form onSubmit={handleSubmitTicket} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest px-1">Issue Overview</label>
-                <input 
-                  type="text"
-                  value={newTicket.title}
-                  onChange={(e) => setNewTicket({...newTicket, title: e.target.value})}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3.5 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all text-sm font-medium"
-                  placeholder="e.g. Session persistence failure on mobile"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest px-1">Detailed Logs / Description</label>
-                <textarea 
-                  value={newTicket.description}
-                  onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all h-28 text-sm font-medium resize-none leading-relaxed"
-                  placeholder="Provide technical context..."
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest px-1">Priority</label>
-                  <select 
-                    value={newTicket.priority}
-                    onChange={(e) => setNewTicket({...newTicket, priority: e.target.value})}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all text-xs font-bold uppercase tracking-widest cursor-pointer"
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest px-1">Initial Status</label>
-                  <select 
-                    value={newTicket.status}
-                    onChange={(e) => setNewTicket({...newTicket, status: e.target.value})}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all text-xs font-bold uppercase tracking-widest cursor-pointer"
-                  >
-                    <option value="To Do">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
-                </div>
-              </div>
-              <button 
-                type="submit"
-                className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-primary/30 mt-6 uppercase tracking-widest text-xs"
-              >
-                {editMode ? 'Update Ticket' : 'Inject Ticket'}
-              </button>
-            </form>
-          </div>
         </div>
       )}
 

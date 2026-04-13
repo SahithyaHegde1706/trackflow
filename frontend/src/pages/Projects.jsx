@@ -20,11 +20,8 @@ import toast from 'react-hot-toast';
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newProject, setNewProject] = useState({ name: '', description: '' });
   const [openMenu, setOpenMenu] = useState(null);
-  const [editMode, setEditMode] = useState(false);
   const navigate = useNavigate();
 
   const fetchProjects = async () => {
@@ -49,29 +46,8 @@ const Projects = () => {
     };
   }, []);
 
-  const handleSubmitProject = async (e) => {
-    e.preventDefault();
-    try {
-      if (editMode) {
-        await API.put(`/api/projects/${newProject._id}`, {
-          name: newProject.name,
-          description: newProject.description
-        });
-        toast.success('Project updated');
-      }
-      setShowModal(false);
-      setNewProject({ name: '', description: '' });
-      setEditMode(false);
-      fetchProjects();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error saving project');
-    }
-  };
-
   const handleEdit = (project) => {
-    setEditMode(true);
-    setNewProject({ _id: project._id, name: project.name, description: project.description });
-    setShowModal(true);
+    navigate(`/projects/edit/${project._id}`);
     setOpenMenu(null);
   };
 
@@ -225,81 +201,6 @@ const Projects = () => {
         </div>
       )}
 
-      {/* Edit Modal (Keeping for Edit Project only) */}
-      <AnimatePresence>
-        {showModal && editMode && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowModal(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl overflow-hidden"
-            >
-              <button 
-                onClick={() => setShowModal(false)}
-                className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-white tracking-tight">Edit Project</h2>
-                <p className="text-slate-400 text-sm mt-1">Update existing project details</p>
-              </div>
-
-              <form onSubmit={handleSubmitProject} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Project Name</label>
-                  <input 
-                    type="text"
-                    value={newProject.name}
-                    autoFocus
-                    onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
-                    placeholder="Enter project name..."
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Description</label>
-                  <textarea 
-                    value={newProject.description}
-                    onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all h-28 text-sm resize-none"
-                    placeholder="Briefly describe your project..."
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                  <button 
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-5 py-2.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 transition-all text-xs font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit"
-                    className="bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-[0.98] text-xs"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
