@@ -109,9 +109,23 @@ io.on('connection', (socket) => {
   });
 });
 
-// Basic health check
+// Public health-check routes (no auth required)
 app.get('/', (req, res) => {
-  res.send('API is running with Socket.io...');
+  res.status(200).json({
+    status: 'success',
+    message: 'TrackFlow Backend is running 🚀',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: `${process.uptime().toFixed(2)}s`,
+    memory: process.memoryUsage().heapUsed,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling
