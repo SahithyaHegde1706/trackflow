@@ -55,12 +55,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/api/admin/analytics`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const res = await API.get('/api/admin/analytics');
         setData(res.data);
       } catch (err) {
         setError('Failed to fetch platform telemetry');

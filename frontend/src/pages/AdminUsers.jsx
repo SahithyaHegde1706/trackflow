@@ -19,18 +19,19 @@ import {
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      setLoading(true);
+      const res = await API.get('/api/admin/users');
       setUsers(res.data);
+      setError(null);
     } catch (err) {
-      console.error(err);
+      setError('Failed to fetch users');
     } finally {
       setLoading(false);
     }
