@@ -59,7 +59,6 @@ app.use(helmet({
 // Enable CORS
 app.use(cors({
   origin: [
-    "http://localhost:3000",
     "http://localhost:5173",
     "https://trackflow-seven-eosin.vercel.app",
     process.env.FRONTEND_URL
