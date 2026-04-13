@@ -78,9 +78,9 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const [projRes, ticketRes, activityRes] = await Promise.all([
-          API.get('/api/projects'),
-          API.get('/api/tickets/my').catch(() => ({ data: [] })),
-          API.get('/api/activity').catch(() => ({ data: [] }))
+          axios.get(`${API_BASE_URL}/api/projects`),
+          axios.get(`${API_BASE_URL}/api/tickets/my`).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/api/activity`).catch(() => ({ data: [] }))
         ]);
 
         setRecentProjects(projRes.data.slice(0, 3));

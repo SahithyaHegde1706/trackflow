@@ -18,7 +18,7 @@ const ActivityStream = ({ projectId }) => {
   useEffect(() => {
     const fetchActivity = async () => {
       try {
-        const res = await API.get(`/api/activity/${projectId}`);
+        const res = await axios.get(`${API_BASE_URL}/api/activity/${projectId}`);
         setActivities(res.data);
       } catch (error) {
         console.error("Failed to fetch activity logs", error);

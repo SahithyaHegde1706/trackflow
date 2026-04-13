@@ -89,7 +89,7 @@ const Settings = () => {
     setError('');
 
     try {
-      await API.put('/api/users/profile', formData);
+      await axios.put(`${API_BASE_URL}/api/users/profile`, formData);
       setSuccess('Profile updated successfully');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
