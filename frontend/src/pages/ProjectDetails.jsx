@@ -29,11 +29,12 @@ const socket = io(API_BASE_URL, {
 });
 
 const ProjectDetails = () => {
-  const { id } = useParams();
+  const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [activeView, setActiveView] = useState('board'); // board or activity
@@ -41,25 +42,29 @@ const ProjectDetails = () => {
 
   const fetchData = async () => {
     try {
+      setError(null);
       const [projRes, ticketRes] = await Promise.all([
-        API.get(`/api/projects/${id}`),
-        API.get(`/api/projects/${id}/tickets`)
+        API.get(`/api/projects/${projectId}`),
+        API.get(`/api/projects/${projectId}/tickets`)
       ]);
       setProject(projRes.data);
       setTickets(ticketRes.data);
     } catch (error) {
       console.error("Data fetch error", error);
+      setError("Failed to synchronize project data. Please verify your connection.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    if (projectId) {
+      fetchData();
+    }
 
     // Socket.io setup
     socket.connect();
-    socket.emit('joinProject', id);
+    socket.emit('joinProject', projectId);
 
     socket.on('ticketUpdated', (updatedTicket) => {
       setTickets(prev => prev.map(t => t._id === updatedTicket._id ? { ...t, ...updatedTicket } : t));
@@ -77,7 +82,7 @@ const ProjectDetails = () => {
       socket.off('ticketCreated');
       socket.disconnect();
     };
-  }, [id]);
+  }, [projectId]);
 
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
@@ -157,6 +162,31 @@ const ProjectDetails = () => {
     <div className="flex flex-col items-center justify-center h-[80vh] space-y-4">
       <Loader2 className="animate-spin text-primary" size={40} />
       <p className="text-slate-500 font-bold text-xs uppercase tracking-widest animate-pulse">Synchronizing board...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] space-y-6">
+      <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
+        <AlertCircle className="text-red-500" size={40} />
+      </div>
+      <div className="text-center space-y-2">
+        <h3 className="text-white font-black text-xl tracking-tight">Access Denied or Not Found</h3>
+        <p className="text-slate-500 font-medium max-w-xs">{error}</p>
+      </div>
+      <button 
+        onClick={() => navigate('/projects')}
+        className="px-8 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-all border border-slate-700"
+      >
+        Return to Environment
+      </button>
+    </div>
+  );
+
+  if (!project) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+       <Loader2 className="animate-spin text-slate-800" size={32} />
+       <p className="text-slate-600 font-bold text-xs uppercase tracking-widest">Reconstructing Workspace...</p>
     </div>
   );
 
