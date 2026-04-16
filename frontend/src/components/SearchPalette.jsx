@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '@/config/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Search, 
   Command, 
@@ -19,6 +19,7 @@ const SearchPalette = () => {
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const navigate = useNavigate();
+  const location = useLocation();
   const inputRef = useRef(null);
   
   // Flatten results for keyboard navigation
@@ -76,10 +77,10 @@ const SearchPalette = () => {
 
   const handleSelect = (type, item) => {
     setIsOpen(false);
-    if (type === 'project') {
-      navigate(`/project/${item._id}`);
-    } else {
-      navigate(`/ticket/${item._id}`);
+    const target = type === 'project' ? `/project/${item._id}` : `/ticket/${item._id}`;
+    
+    if (location.pathname !== target) {
+      navigate(target);
     }
   };
 

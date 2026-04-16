@@ -14,7 +14,7 @@ import {
   X,
   Target
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const Projects = () => {
@@ -23,6 +23,7 @@ const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenu, setOpenMenu] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchProjects = async () => {
     try {
@@ -110,7 +111,12 @@ const Projects = () => {
           {filteredProjects.map(project => (
             <div 
               key={project._id} 
-              onClick={() => navigate(`/project/${project._id}`)}
+                onClick={() => {
+                const target = `/project/${project._id}`;
+                if (location.pathname !== target) {
+                  navigate(target);
+                }
+              }}
               className="bg-slate-800 border border-slate-700/50 rounded-[2rem] p-8 relative group overflow-hidden shadow-md hover:shadow-xl hover:shadow-primary/5 hover:translate-y-[-4px] transition-all duration-300 cursor-pointer"
             >
                {/* Accent bar */}
@@ -179,7 +185,10 @@ const Projects = () => {
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/project/${project._id}`);
+                      const target = `/project/${project._id}`;
+                      if (location.pathname !== target) {
+                        navigate(target);
+                      }
                     }}
                     className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/5 active:scale-95 cursor-pointer"
                   >

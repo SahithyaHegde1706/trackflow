@@ -55,6 +55,7 @@ const ProjectDetails = () => {
   };
 
   useEffect(() => {
+    if (!id) return;
     fetchData();
 
     // Socket.io setup
@@ -160,6 +161,16 @@ const ProjectDetails = () => {
     </div>
   );
 
+  if (!project) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] space-y-4">
+        <AlertCircle className="text-red-500" size={40} />
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Project not found</p>
+        <button onClick={() => navigate('/projects')} className="text-primary font-bold text-sm underline">Back to Projects</button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col space-y-8 animate-in pb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-1">
@@ -185,7 +196,7 @@ const ProjectDetails = () => {
               ))}
               {project?.members?.length > 5 && (
                 <div className="w-9 h-9 rounded-full bg-slate-900 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-slate-700 shadow-inner">
-                  +{project.members.length - 5}
+                  +{project?.members?.length - 5}
                 </div>
               )}
            </div>
