@@ -29,38 +29,45 @@ const socket = io(API_BASE_URL, {
 });
 
 const ProjectDetails = () => {
-  const { id } = useParams();
+  const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [activeView, setActiveView] = useState('board'); // board or activity
   const [selectedTickets, setSelectedTickets] = useState([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
 
   const fetchData = async () => {
     try {
       const [projRes, ticketRes] = await Promise.all([
-        API.get(`/api/projects/${id}`),
-        API.get(`/api/projects/${id}/tickets`)
+        API.get(`/api/projects/${projectId}`),
+        API.get(`/api/projects/${projectId}/tickets`)
       ]);
       setProject(projRes.data);
       setTickets(ticketRes.data);
+      setError(null);
     } catch (error) {
       console.error("Data fetch error", error);
+      setError("Failed to load project data. Please verify connectivity.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!id) return;
+    if (!projectId) return;
+    
+    setLoading(true);
     fetchData();
 
     // Socket.io setup
     socket.connect();
-    socket.emit('joinProject', id);
+    socket.emit('joinProject', projectId);
 
     socket.on('ticketUpdated', (updatedTicket) => {
       setTickets(prev => prev.map(t => t._id === updatedTicket._id ? { ...t, ...updatedTicket } : t));
@@ -78,7 +85,7 @@ const ProjectDetails = () => {
       socket.off('ticketCreated');
       socket.disconnect();
     };
-  }, [id]);
+  }, [projectId]);
 
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
@@ -118,7 +125,7 @@ const ProjectDetails = () => {
   const handleInviteUser = async (e) => {
     e.preventDefault();
     try {
-      await API.post(`/api/projects/${id}/invite`, { email: inviteEmail });
+      await API.post(`/api/projects/${projectId}/invite`, { email: inviteEmail });
       alert('Invite sent successfully!');
       setShowInviteModal(false);
       setInviteEmail('');
@@ -161,12 +168,22 @@ const ProjectDetails = () => {
     </div>
   );
 
-  if (!project) {
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[80vh] space-y-4">
         <AlertCircle className="text-red-500" size={40} />
-        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Project not found</p>
-        <button onClick={() => navigate('/projects')} className="text-primary font-bold text-sm underline">Back to Projects</button>
+        <p className="text-red-500 font-bold text-xs uppercase tracking-widest leading-relaxed text-center px-10">{error}</p>
+        <button onClick={() => navigate('/projects')} className="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all border border-slate-700">Back to Projects</button>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] space-y-4">
+        <Search className="text-slate-500" size={40} />
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Project manifest not found</p>
+        <button onClick={() => navigate('/projects')} className="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all border border-slate-700">Back to Projects</button>
       </div>
     );
   }
@@ -258,7 +275,7 @@ const ProjectDetails = () => {
         <div className="hidden md:block h-8 w-px bg-slate-700/50 mx-2" />
 
         <button 
-          onClick={() => navigate(`/projects/${id}/new-ticket`)}
+          onClick={() => navigate(`/projects/${projectId}/new-ticket`)}
           className="w-full md:w-auto bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus size={16} />
@@ -273,14 +290,14 @@ const ProjectDetails = () => {
             tickets={filteredTickets} 
             onDragEnd={handleDragEnd} 
             onOpenTicket={(ticket) => navigate(`/ticket/${ticket._id}`)}
-            onAddTicket={() => navigate(`/projects/${id}/new-ticket`)}
+            onAddTicket={() => navigate(`/projects/${projectId}/new-ticket`)}
             selectedTickets={selectedTickets}
             onToggleSelect={handleTicketSelect}
             onDeleteTicket={handleDeleteTicket}
           />
         ) : (
           <div className="bg-slate-800/40 border border-slate-700/30 rounded-[2.5rem] p-10 shadow-inner overflow-y-auto max-h-[700px] no-scrollbar animate-in">
-             <ActivityStream projectId={id} />
+             <ActivityStream projectId={projectId} />
           </div>
         )}
       </div>
